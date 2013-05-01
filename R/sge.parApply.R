@@ -187,9 +187,9 @@ sge.parParApply <- function (X, FUN, ...,
       rowSet <- sge.split(X, njobs)
     else
       rowSet <- list(X)
-    if(debug) print(rowSet)    
-    prefix <- tempfile(pattern = file.prefix, tmpdir = getwd())
-    filenames <- vector(length=length(rowSet))
+    if(debug) print(rowSet)
+    tmp.dir <- sge.save.dir()
+    prefix <- tempfile(pattern = file.prefix, tmpdir = tmp.dir)
    # save the GLOBAL data
    if(apply.method == 1) {
         sge.globalPrep(
@@ -221,6 +221,8 @@ sge.parParApply <- function (X, FUN, ...,
     if(debug) print(filenames)
     qsub          <- getOption("sge.qsub")
     qsub.options  <- getOption("sge.qsub.options")
+    # put outputs in save directory
+    qsub.options <- paste(qsub.options, "-e",tmp.dir,"-o",tmp.dir)
     qsub.user.opt <- getOption("sge.user.options")
     qsub.blocking <- getOption("sge.qsub.blocking")
     qsub.script   <- getOption("sge.script")

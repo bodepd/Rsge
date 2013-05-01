@@ -11,6 +11,18 @@ sge.get.jobid <- function(result)
     else
       return(NULL)
 }
+
+#directory in which to save all temporary files
+sge.save.dir <- function() {
+  dir <- getOption("sge.save.dir")
+  if (is.null(dir))
+    getwd()
+  else {
+    dir.create(dir,showWarnings=FALSE,recursive=TRUE)
+    dir
+  }
+}
+
 #determines how to split input data
 sge.split <- function (x, ncl) {
   # The version in snow of splitrows uses 'F' instead of 'FALSE' and

@@ -23,6 +23,8 @@ set.setDefaultOptions is used to set all of the default options for sge, it is m
 
    sge.save.global
      Should the global environment be saved by default? Default is TRUE (this may change in future versions)
+   sge.save.dir
+     Directory in which to store temporary files. Default is NULL (meaning current working directory)
    sge.use.cluster
      Specifies if the run should be performed using an SGE cluster. Default is TRUE.
    sge.block.size
