@@ -9,7 +9,7 @@
 sge.submit(func, ..., 
            global.savelist=NULL,
            function.savelist=NULL,
-           packages=NULL, 
+           packages=NULL, sources=NULL,
            debug=getOption("sge.debug"), file.prefix=getOption('sge.file.prefix')
            )
 sge.run(...)
@@ -23,6 +23,8 @@ at should be imported. If sge.save.global is set to TRUE, then this will clear t
   \item{function.savelist}{Character vector giving the variables to save from the local environment.
 Passing any arguments here will cause the function environment to be cleared. Passing a vector() will cause the local function to be empty.}
   \item{packages}{List of library packages to be loaded by each worker
+    process before computation is started.}
+  \item{sources}{List of files to be sourced by each worker
     process before computation is started.}
   \item{debug}{Runs at debug level.}
   \item{file.prefix}{Prefix used to create data file}

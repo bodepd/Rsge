@@ -4,6 +4,7 @@
                          global.savelist=NULL, 
                          function.savelist=NULL, 
                          packages=NULL,
+                         sources=NULL,
                          debug=getOption('sge.debug'),
                          file.prefix=getOption('sge.file.prefix')
                          )
@@ -16,6 +17,7 @@
                    global.savelist=global.savelist,
                    function.savelist=function.savelist,
                    sge.packages=packages,
+                   sge.sources=sources,
                    debug=debug,prefix=fname
                   )
     #sge.call <- as.call(list(func, ...) )

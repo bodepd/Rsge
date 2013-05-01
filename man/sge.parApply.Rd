@@ -14,27 +14,31 @@
   sge.apply   (X, MARGIN, FUN, ..., 
                join.method=cbind,
                njobs,batch.size=getOption('sge.block.size'),
-               packages=NULL, global.savelist=NULL,function.savelist=NULL,
+               packages=NULL, sources=NULL,
+               global.savelist=NULL,function.savelist=NULL,
                cluster =getOption("sge.use.cluster"),
                trace=getOption("sge.trace"), debug=getOption("sge.debug"),
                file.prefix=getOption("sge.file.prefix"))
   sge.parRapply(X, FUN, ..., join.method=cbind, 
                njobs, batch.size=getOption('sge.block.size'),
-               packages=NULL, global.savelist=NULL, function.savelist=NULL,
+               packages=NULL, sources=NULL,
+               global.savelist=NULL, function.savelist=NULL,
                cluster =getOption("sge.use.cluster"),
                trace=getOption("sge.trace"), debug=getOption("sge.debug"),
                file.prefix=getOption("sge.file.prefix"))
  
   sge.parCapply(X, FUN, ..., join.method=cbind, 
                njobs, batch.size=getOption('sge.block.size'),
-               packages=NULL, global.savelist=NULL, function.savelist=NULL,
+               packages=NULL, sources=NULL,
+               global.savelist=NULL, function.savelist=NULL,
                cluster =getOption("sge.use.cluster"),
                trace=getOption("sge.trace"), debug=getOption("sge.debug"),
                file.prefix=getOption("sge.file.prefix"))
  
   sge.parLapply(X, FUN, ..., join.method=c, 
                njobs, batch.size=getOption('sge.block.size'),
-               packages=NULL, global.savelist=NULL, function.savelist=NULL,
+               packages=NULL, sources=NULL,
+               global.savelist=NULL, function.savelist=NULL,
                cluster =getOption("sge.use.cluster"),
                trace=getOption("sge.trace"), debug=getOption("sge.debug"),
                file.prefix=getOption("sge.file.prefix")) 
@@ -43,7 +47,8 @@
                 USE.NAMES=TRUE, simplify=TRUE,
                 join.method=c, 
                 njobs, batch.size=getOption('sge.block.size'),
-                packages=NULL, global.savelist=NULL, function.savelist=NULL,
+                packages=NULL, sources=NULL,
+                global.savelist=NULL, function.savelist=NULL,
                 cluster=getOption("sge.use.cluster"),
                 trace=getOption("sge.trace"), debug=getOption("sge.debug"),
                 file.prefix=getOption("sge.file.prefix"))
@@ -52,7 +57,7 @@
                njobs,
                batch.size=getOption('sge.block.size'),
                trace=getOption("sge.trace"),
-               packages=NULL,
+               packages=NULL, sources=NULL,
                global.savelist=NULL, function.savelist=NULL,
                debug=getOption("sge.debug"),
                file.prefix=getOption('sge.file.prefix'),
@@ -72,6 +77,8 @@
   \item{function.savelist}{Character vector giving the variables to save from the local environment. <Passing a vector() will cause the local function to be empty, any value here will remove any non-listed values }
   \item{packages}{List of library packages to be loaded by each worker
     process before computation is started. }
+  \item{sources}{List of files to be sourced by each worker process
+    before computation is started}
   \item{cluster}{determines if the job should be submitted to the cluster or run locally (default:submit to cluster, TRUE)}
   \item{trace}{Prints some information about job submission. (TRUE|FALSE)}
   \item{file.prefix}{Prefix for the data files used to pass information between nodes}
@@ -84,8 +91,8 @@
 
   sge.parApply applies the function argument to either the rows, or elements of x. (depending on the value of apply.method)
 
-    The arguments \code{packages} and \code{savelist} can be used to
-  properly initialize the worker processes.
+    The arguments \code{packages}, \code{sources} and \code{savelist}
+    can be used to properly initialize the worker processes.
 
   sge.parCapply computes the transpose of X and uses it for the arguments of parRapply.
 
