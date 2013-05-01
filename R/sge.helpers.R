@@ -75,3 +75,24 @@ sge.run <- function(...) {
   }
   sge.list.get.result(info)
 }
+
+
+
+
+## the next function was added to help keep track on the progress
+## if one has the utility "unbuffer" it can be used like that:
+
+##unbuffer.path <- "/usr/share/doc/expect-dev/examples/unbuffer"
+##if (file.exists(unbuffer.path))
+##  sge.options(sge.qsub=paste(unbuffer.path,"qsub"))
+
+sge.system.tee <- function(cmd,out=TRUE) {
+  pipe.conn <- pipe(cmd, "r")
+  on.exit(close(pipe.conn))
+  res <- character()
+  while (length(line <- readLines(pipe.conn, 1))==1) {
+    if (out) cat(line,"\n")
+    res <- c(res,line)
+  }
+  res
+}

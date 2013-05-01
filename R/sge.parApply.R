@@ -236,7 +236,7 @@ sge.parParApply <- function (X, FUN, ...,
     qsub.blocking <- getOption("sge.qsub.blocking")
     qsub.script   <- getOption("sge.script")
     script <- paste(file.path(.path.package("Rsge"), qsub.script), prefix)
-    result <- system(paste(qsub, " ",qsub.user.opt, " ", qsub.options, " ", qsub.blocking,  length(rowSet), " ", script, " 2>&1", sep=""), intern = TRUE)
+    result <- sge.system.tee(paste(qsub, " ",qsub.user.opt, " ", qsub.options, " ", qsub.blocking,  length(rowSet), " ", script, " 2>&1", sep=""),out=trace)
     if(sge.checkNotNow(result)) {
       cat("now option set, could not run now on cluster, running local.\n")
       if(apply.method == 1) {
