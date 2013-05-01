@@ -9,6 +9,6 @@ Depends: snow
 SystemRequirements: Requires SGE (qsub, qstat, optionally qacct)
 Maintainer: Dan Bode <bodepd@yahoo.com>
 License: LGPL
-Packaged: 2012-10-29 08:57:38 UTC; ripley
+Packaged:
 Repository: CRAN
 Date/Publication: 2012-10-29 08:57:38
