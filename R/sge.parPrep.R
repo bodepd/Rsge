@@ -85,6 +85,7 @@
     savelist <- c(global.savelist, "sge.call", "sge.packages", "sge.sources")
     global.filename <-paste(prefix, "-GLOBAL",   sep="")
     save(list=savelist, file=global.filename)
+    global.filename
   }
 #for par jobs just store the X variable
 "sge.taskPrep" <- 

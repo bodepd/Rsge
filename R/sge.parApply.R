@@ -182,6 +182,9 @@ sge.parParApply <- function (X, FUN, ...,
 
                          )
   {
+    files.to.remove <- character()
+    if (as.logical(getOption("sge.remove.files")))
+      on.exit(lapply(files.to.remove, file.remove))
     # split X
     if(missing(njobs) && (is.matrix(X) || is.data.frame(X)))
       njobs <- max(1,ceiling(nrow(X)/batch.size))    
@@ -196,9 +199,10 @@ sge.parParApply <- function (X, FUN, ...,
     if(debug) print(rowSet)
     tmp.dir <- sge.save.dir()
     prefix <- tempfile(pattern = file.prefix, tmpdir = tmp.dir)
+    filenames <- character(length(rowSet))
    # save the GLOBAL data
    if(apply.method == 1) {
-        sge.globalPrep(
+        global.filename <- sge.globalPrep(
                           lapply, X=NULL, FUN=FUN, ...,
                           global.savelist=global.savelist,
                           function.savelist=function.savelist,
@@ -206,7 +210,7 @@ sge.parParApply <- function (X, FUN, ...,
                           debug=debug,prefix=prefix
                          )
    } else if(apply.method ==2) {
-        sge.globalPrep(
+        global.filename <- sge.globalPrep(
                           apply, X=NULL, MARGIN=1, FUN=FUN, ...,
                           global.savelist=global.savelist,
                           function.savelist=function.savelist,
@@ -214,13 +218,12 @@ sge.parParApply <- function (X, FUN, ...,
                           debug=debug,prefix=prefix
                          )
    }
+   files.to.remove <- c(files.to.remove, global.filename)
    #save X into the task specific file
    for (i in 1:length(rowSet)) {
-      if(apply.method == 1) {
-        filenames[i] <- sge.taskPrep(X=rowSet[[i]],index=i,prefix=prefix)
-      } else if(apply.method ==2) {
-        filenames[i] <- sge.taskPrep(X=rowSet[[i]],index=i,prefix=prefix)
-      }
+      fnames <- sge.taskPrep(X=rowSet[[i]],index=i,prefix=prefix)
+      filenames[i] <- fnames["ret.fname"]
+      files.to.remove <- c(files.to.remove, fnames)
     } 
     if(trace) cat("Completed storing environment to disk\n")
     if(trace) cat("Submitting ",length(rowSet), "jobs...\n")
@@ -245,13 +248,22 @@ sge.parParApply <- function (X, FUN, ...,
     if(debug) cat( result, "\n")
     if(trace) cat("All jobs completed\n") 
     jobid <- sge.get.jobid(result)
-    # I am not sure how well R can handle this, maybe it will not scale
-    system(paste("for i in `ls *.e",jobid,"*`; do cat $i; done", sep=""))
-    if(as.logical(getOption("sge.remove.files"))) {
-      system(paste("rm *.e",jobid,"*; rm *.o", jobid, "*;" , sep=""))
+    # mark all outputs for removal
+    output.prefix <- file.path(tmp.dir,qsub.script)
+    for (i in 1:length(rowSet))
+      files.to.remove <-
+        c(files.to.remove,
+          paste(output.prefix,".",c("e","o"),jobid,".",i,sep=""))
+    # show all error outputs, omitting library loading
+    for (i in 1:length(rowSet)) {
+      lines <- readLines(paste(output.prefix,".e",jobid,".",i,sep=""))
+      package.load.lines <- grep("^Loading required package: ", lines)
+      if (length(package.load.lines)>0)
+        lines <- lines[-package.load.lines]
+      if (length(lines)>0)
+        cat(lines,sep="\n")
     }
     results <- lapply( filenames, sge.get.result, jobid = jobid)
-    if(as.logical(getOption("sge.remove.files"))) file.remove(paste(prefix, "-GLOBAL",   sep=""))
     if(debug) print (results)
     # When c is run the try-errors are converted into strings
     # so its probably better to not combine errors, I
