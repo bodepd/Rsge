@@ -21,6 +21,10 @@ else
   sgeenvfile=$1; shift
 fi
 
+#show machine name (for easier debugging)
+echo -n "Running on "
+uname -n
+
 sgereturnfile=${sgeenvfile}.sge.ret
 #I am not exactly sure what this is going
 [ "$1" ] && RSGE_R="$1"
