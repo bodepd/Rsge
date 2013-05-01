@@ -26,7 +26,8 @@
            prefix,
            global.savelist=NULL,
            function.savelist=NULL,
-           sge.packages=NULL, 
+           sge.packages=NULL,
+           sge.sources=NULL,
            debug=getOption("sge.debug")
   ) 
   {
@@ -73,14 +74,18 @@
 
     if(debug) print(paste("Global Environment variable:", global.savelist))
     if(debug) print(paste("Packaged:", sge.packages))
+    if(debug) print(paste("Sources:", sge.sources))
     if("sge.call" %in% global.savelist) 
       warning("sge.call is a reserved variable name, it cannot be passed to the global environmnet")
     if("sge.packages" %in% global.savelist) 
       warning("sge.packages is a reserved variable name, it cannot be passed to the global environmnet")
+    if("sge.sources" %in% global.savelist) 
+      warning("sge.sources is a reserved variable name, it cannot be passed to the global environmnet")
     #save globalenv to load later
-    savelist <- c(global.savelist, "sge.call", "sge.packages")
+    savelist <- c(global.savelist, "sge.call", "sge.packages", "sge.sources")
     global.filename <-paste(prefix, "-GLOBAL",   sep="")
     save(list=savelist, file=global.filename)
+    global.filename
   }
 #for par jobs just store the X variable
 "sge.taskPrep" <- 
@@ -94,4 +99,5 @@
     save(list=savelist, file=fname)
     sge.ret.name = getOption("sge.ret.ext")
     sge.fname <- paste(fname,".", sge.ret.name, sep="")
+    c(input.fname=fname,ret.fname=sge.fname)
   } 

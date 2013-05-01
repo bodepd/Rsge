@@ -28,6 +28,8 @@ sge.setDefaultOptions <- function() {
   #logging levels, this will be replaced by something useful soon
   options(sge.debug=FALSE)
   options(sge.trace=TRUE)
+  # directory for temporary files (NULL means getwd())
+  options(sge.save.dir=NULL)
   # should we save the global environment by default.
   options(sge.save.global=FALSE)
   # global variables that should not be changed, or should be changed very carefully. 

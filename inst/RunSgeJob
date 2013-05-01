@@ -21,6 +21,10 @@ else
   sgeenvfile=$1; shift
 fi
 
+#show machine name (for easier debugging)
+echo -n "Running on "
+uname -n
+
 sgereturnfile=${sgeenvfile}.sge.ret
 #I am not exactly sure what this is going
 [ "$1" ] && RSGE_R="$1"
@@ -57,6 +61,12 @@ sge.ret <- try({
 	cat("loading package", package.name, "\n")
 	library(package.name, character.only=TRUE)
 8   }
+  if (exists("sge.sources"))
+    for (source.name in sge.sources)
+    {
+        cat("loading source", source.name, "\n")
+        source(source.name)
+    }
   mycall <- get("sge.call")
   #we are running paralell version
   if(file.exists("${sgeglobalenvfile}")) {

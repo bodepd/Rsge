@@ -11,6 +11,18 @@ sge.get.jobid <- function(result)
     else
       return(NULL)
 }
+
+#directory in which to save all temporary files
+sge.save.dir <- function() {
+  dir <- getOption("sge.save.dir")
+  if (is.null(dir))
+    getwd()
+  else {
+    dir.create(dir,showWarnings=FALSE,recursive=TRUE)
+    dir
+  }
+}
+
 #determines how to split input data
 sge.split <- function (x, ncl) {
   # The version in snow of splitrows uses 'F' instead of 'FALSE' and
@@ -62,4 +74,25 @@ sge.run <- function(...) {
     status <- sge.job.status(info$jobid)
   }
   sge.list.get.result(info)
+}
+
+
+
+
+## the next function was added to help keep track on the progress
+## if one has the utility "unbuffer" it can be used like that:
+
+##unbuffer.path <- "/usr/share/doc/expect-dev/examples/unbuffer"
+##if (file.exists(unbuffer.path))
+##  sge.options(sge.qsub=paste(unbuffer.path,"qsub"))
+
+sge.system.tee <- function(cmd,out=TRUE) {
+  pipe.conn <- pipe(cmd, "r")
+  on.exit(close(pipe.conn))
+  res <- character()
+  while (length(line <- readLines(pipe.conn, 1))==1) {
+    if (out) cat(line,"\n")
+    res <- c(res,line)
+  }
+  res
 }

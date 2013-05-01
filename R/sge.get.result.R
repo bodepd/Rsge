@@ -26,25 +26,15 @@ sge.list.get.result <- function(list, ...) {
 #   I changed the filename to be the one to retrieve
 #    sge.ret.name = getOption("sge.ret.ext")
 #    sge.fname <- paste(filename,".", sge.ret.name, sep="")
-    sge.ret.name <- getOption("sge.ret.ext") 
-    sge.ret.ext <- paste(".", sge.ret.name, sep="")
-    filename <- strsplit(sge.fname, sge.ret.ext)[[1]]
-#cat("|",sge.fname,"|", filename ,"|\n")
+    sge.ret.name <- getOption("sge.ret.ext")
     if (!file.exists(sge.fname)) {
-      warning(paste("Expected file", sge.fname, "Does not exist at:", getwd()))
+      warning(paste("Expected file", sge.fname, "does not exist"))
       return(NULL)
     }
-# print out stderr from all of the jobs (this assumes that 
-    
+# print out stderr from all of the jobs (this assumes that
     load(sge.fname)
-    if (getOption("sge.remove.files") == TRUE) {
-      if(file.exists(filename)) {
-        file.remove(filename)
-      }
-      file.remove(sge.fname)
-    }
     ret <- get(sge.ret.name)
     if (class(ret) == "try-error")
       warning("Error(s) encountered in the remote R session")
     ret
-  }
+}

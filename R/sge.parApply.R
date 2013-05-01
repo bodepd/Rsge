@@ -6,6 +6,7 @@ sge.apply <- function(X, MARGIN, FUN, ...,
                           njobs,
                           batch.size=getOption('sge.block.size'),
                           packages=NULL,
+                          sources=NULL,
                           global.savelist=NULL,
                           function.savelist=NULL,
                           cluster=getOption('sge.use.cluster'),
@@ -17,7 +18,7 @@ sge.apply <- function(X, MARGIN, FUN, ...,
       sge.parRapply(X, FUN, ...,
                    join.method=join.method,cluster=cluster,
                    njobs=njobs, batch.size=batch.size,
-                   packages=packages, 
+                   packages=packages, sources=sources,
                    global.savelist=global.savelist, 
                    function.savelist=function.savelist,
                    trace=trace, debug=debug, file.prefix=file.prefix)
@@ -25,7 +26,7 @@ sge.apply <- function(X, MARGIN, FUN, ...,
       sge.parCapply(X, FUN, ...,
                    join.method=join.method,cluster=cluster,
                    njobs=njobs, batch.size=batch.size,
-                   packages=packages, 
+                   packages=packages, sources=sources,
                    global.savelist=global.savelist, 
                    function.savelist=function.savelist,
                    trace=trace, debug=debug, file.prefix=file.prefix)
@@ -37,6 +38,7 @@ sge.parCapply <- function(X, FUN, ...,
                           njobs,
                           batch.size=getOption('sge.block.size'),
                           packages=NULL,
+                          sources=NULL,
                           global.savelist=NULL,
                           function.savelist=NULL,
                           cluster=getOption('sge.use.cluster'),
@@ -48,7 +50,7 @@ sge.parCapply <- function(X, FUN, ...,
     sge.parParApply(t(X), FUN, ..., 
                join.method=join.method,  
                njobs=njobs, batch.size=batch.size,
-               packages=packages, 
+               packages=packages, sources=sources,
                global.savelist=global.savelist, 
                function.savelist=function.savelist,
                trace=trace, debug=debug, file.prefix=file.prefix, apply.method=2
@@ -65,6 +67,7 @@ sge.parRapply <- function(X, FUN, ...,
                           njobs, 
                           batch.size=getOption('sge.block.size'),
                           packages=NULL,
+                          sources=NULL,
                           global.savelist=NULL,
                           function.savelist=NULL,
                           cluster=getOption('sge.use.cluster'),
@@ -76,7 +79,7 @@ sge.parRapply <- function(X, FUN, ...,
     sge.parParApply(X, FUN, ...,  
                 join.method=join.method, 
                 njobs=njobs, batch.size=batch.size,
-                packages=packages, 
+                packages=packages, sources=sources,
                 global.savelist=global.savelist, 
                 function.savelist=function.savelist,
                 trace=trace, debug=debug, file.prefix=file.prefix, apply.method=2
@@ -92,6 +95,7 @@ sge.parLapply <- function(X, FUN, ...,
                           njobs,
                           batch.size=getOption('sge.block.size'),
                           packages=NULL,
+                          sources=NULL,
                           global.savelist=NULL,
                           function.savelist=NULL,
                           cluster=getOption('sge.use.cluster'),
@@ -103,7 +107,7 @@ sge.parLapply <- function(X, FUN, ...,
     sge.parParApply(X, FUN, ...,
                 join.method=join.method, njobs=njobs, 
                 batch.size=batch.size,
-                packages=packages, 
+                packages=packages, sources=sources,
                 global.savelist=global.savelist,
                 function.savelist=function.savelist,
                 trace=trace, debug=debug, file.prefix=file.prefix, apply.method=1
@@ -122,6 +126,7 @@ sge.parSapply <- function(X, FUN, ...,
                           njobs,
                           batch.size=getOption('sge.block.size'),
                           packages=NULL,
+                          sources=NULL,
                           global.savelist=NULL,
                           function.savelist=NULL,
                           cluster=getOption('sge.use.cluster'),
@@ -136,7 +141,7 @@ sge.parSapply <- function(X, FUN, ...,
     answer <- sge.parParApply(X, FUN, ...,
                join.method=join.method, njobs=njobs, 
                batch.size=batch.size,
-               packages=packages, 
+               packages=packages, sources=sources,
                global.savelist=global.savelist, 
                function.savelist=function.savelist,
                trace=trace, debug=debug, 
@@ -168,6 +173,7 @@ sge.parParApply <- function (X, FUN, ...,
                            batch.size=getOption('sge.block.size'),
                            trace=getOption('sge.trace'),
                            packages=NULL,
+                           sources=NULL,
                            global.savelist=NULL,
                            function.savelist=NULL,
                            debug=getOption('sge.debug'),
@@ -176,6 +182,9 @@ sge.parParApply <- function (X, FUN, ...,
 
                          )
   {
+    files.to.remove <- character()
+    if (as.logical(getOption("sge.remove.files")))
+      on.exit(lapply(files.to.remove, file.remove))
     # split X
     if(missing(njobs) && (is.matrix(X) || is.data.frame(X)))
       njobs <- max(1,ceiling(nrow(X)/batch.size))    
@@ -187,45 +196,47 @@ sge.parParApply <- function (X, FUN, ...,
       rowSet <- sge.split(X, njobs)
     else
       rowSet <- list(X)
-    if(debug) print(rowSet)    
-    prefix <- tempfile(pattern = file.prefix, tmpdir = getwd())
-    filenames <- vector(length=length(rowSet))
+    if(debug) print(rowSet)
+    tmp.dir <- sge.save.dir()
+    prefix <- tempfile(pattern = file.prefix, tmpdir = tmp.dir)
+    filenames <- character(length(rowSet))
    # save the GLOBAL data
    if(apply.method == 1) {
-        sge.globalPrep(
+        global.filename <- sge.globalPrep(
                           lapply, X=NULL, FUN=FUN, ...,
                           global.savelist=global.savelist,
                           function.savelist=function.savelist,
-                          sge.packages=packages,
+                          sge.packages=packages,sge.sources=sources,
                           debug=debug,prefix=prefix
                          )
    } else if(apply.method ==2) {
-        sge.globalPrep(
+        global.filename <- sge.globalPrep(
                           apply, X=NULL, MARGIN=1, FUN=FUN, ...,
                           global.savelist=global.savelist,
                           function.savelist=function.savelist,
-                          sge.packages=packages,
+                          sge.packages=packages,sge.sources=sources,
                           debug=debug,prefix=prefix
                          )
    }
+   files.to.remove <- c(files.to.remove, global.filename)
    #save X into the task specific file
    for (i in 1:length(rowSet)) {
-      if(apply.method == 1) {
-        filenames[i] <- sge.taskPrep(X=rowSet[[i]],index=i,prefix=prefix)
-      } else if(apply.method ==2) {
-        filenames[i] <- sge.taskPrep(X=rowSet[[i]],index=i,prefix=prefix)
-      }
+      fnames <- sge.taskPrep(X=rowSet[[i]],index=i,prefix=prefix)
+      filenames[i] <- fnames["ret.fname"]
+      files.to.remove <- c(files.to.remove, fnames)
     } 
     if(trace) cat("Completed storing environment to disk\n")
     if(trace) cat("Submitting ",length(rowSet), "jobs...\n")
     if(debug) print(filenames)
     qsub          <- getOption("sge.qsub")
     qsub.options  <- getOption("sge.qsub.options")
+    # put outputs in save directory
+    qsub.options <- paste(qsub.options, "-e",tmp.dir,"-o",tmp.dir)
     qsub.user.opt <- getOption("sge.user.options")
     qsub.blocking <- getOption("sge.qsub.blocking")
     qsub.script   <- getOption("sge.script")
     script <- paste(file.path(.path.package("Rsge"), qsub.script), prefix)
-    result <- system(paste(qsub, " ",qsub.user.opt, " ", qsub.options, " ", qsub.blocking,  length(rowSet), " ", script, " 2>&1", sep=""), intern = TRUE)
+    result <- sge.system.tee(paste(qsub, " ",qsub.user.opt, " ", qsub.options, " ", qsub.blocking,  length(rowSet), " ", script, " 2>&1", sep=""),out=trace)
     if(sge.checkNotNow(result)) {
       cat("now option set, could not run now on cluster, running local.\n")
       if(apply.method == 1) {
@@ -237,13 +248,22 @@ sge.parParApply <- function (X, FUN, ...,
     if(debug) cat( result, "\n")
     if(trace) cat("All jobs completed\n") 
     jobid <- sge.get.jobid(result)
-    # I am not sure how well R can handle this, maybe it will not scale
-    system(paste("for i in `ls *.e",jobid,"*`; do cat $i; done", sep=""))
-    if(as.logical(getOption("sge.remove.files"))) {
-      system(paste("rm *.e",jobid,"*; rm *.o", jobid, "*;" , sep=""))
+    # mark all outputs for removal
+    output.prefix <- file.path(tmp.dir,qsub.script)
+    for (i in 1:length(rowSet))
+      files.to.remove <-
+        c(files.to.remove,
+          paste(output.prefix,".",c("e","o"),jobid,".",i,sep=""))
+    # show all error outputs, omitting library loading
+    for (i in 1:length(rowSet)) {
+      lines <- readLines(paste(output.prefix,".e",jobid,".",i,sep=""))
+      package.load.lines <- grep("^Loading required package: ", lines)
+      if (length(package.load.lines)>0)
+        lines <- lines[-package.load.lines]
+      if (length(lines)>0)
+        cat(lines,sep="\n")
     }
     results <- lapply( filenames, sge.get.result, jobid = jobid)
-    if(as.logical(getOption("sge.remove.files"))) file.remove(paste(prefix, "-GLOBAL",   sep=""))
     if(debug) print (results)
     # When c is run the try-errors are converted into strings
     # so its probably better to not combine errors, I
