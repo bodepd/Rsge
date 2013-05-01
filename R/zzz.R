@@ -1,4 +1,4 @@
-.First.lib <-  function(libname, pkgname) {
+.onLoad <-  function(libname, pkgname) {
   require(snow);
   sge.setDefaultOptions();
   cat(paste("\nWelcome to Rsge\n"));
